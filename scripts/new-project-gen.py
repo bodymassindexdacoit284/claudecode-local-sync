@@ -331,7 +331,7 @@ echo.
 git log --oneline --decorate -10
 echo.
 color 0A
-echo  DONE! You have the latest version.
+echo  DONE^^! You have the latest version.
 echo.
 
 :pull_sessions
@@ -505,7 +505,7 @@ if /i "!PUSHIT!"=="Y" (
 echo.
 color 0A
 echo ══════════════════════════════════════════════════════════════════════════════
-echo  SUCCESS! Rolled back to !TARGET!
+echo  SUCCESS^^! Rolled back to !TARGET!
 echo ══════════════════════════════════════════════════════════════════════════════
 echo.
 echo  Your code is now at version !TARGET!. History preserved.

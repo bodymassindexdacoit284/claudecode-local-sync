@@ -219,7 +219,7 @@ for filepath, replacements in files_to_update:
 echo.
 color 0A
 echo ══════════════════════════════════════════════════
-echo   Done! Scripts configured for: !GH_ORG!
+echo   Done^^! Scripts configured for: !GH_ORG!
 echo ══════════════════════════════════════════════════
 echo.
 echo  Next steps:

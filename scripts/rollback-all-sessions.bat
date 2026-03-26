@@ -148,7 +148,7 @@ if /i "!PUSHIT!"=="Y" (
 echo.
 color 0A
 echo ══════════════════════════════════════════════════════════════════════════════
-echo  SUCCESS! Sessions rolled back to !TARGET!
+echo  SUCCESS^^! Sessions rolled back to !TARGET!
 echo ══════════════════════════════════════════════════════════════════════════════
 echo.
 echo  Your sessions are now at version !TARGET!. History preserved.

@@ -245,7 +245,7 @@ if errorlevel 1 (
 echo.
 color 0A
 echo ══════════════════════════════════════════════════
-echo   SUCCESS! Project "!PROJECT_NAME!" created
+echo   SUCCESS^^! Project "!PROJECT_NAME!" created
 echo ══════════════════════════════════════════════════
 echo.
 echo  Folder:    !PROJECT_DIR!
@@ -257,6 +257,7 @@ echo    push.bat / push.sh         - Push code + CLI sessions
 echo    pull.bat / pull.sh         - Pull code + CLI sessions
 echo    rollback.bat / rollback.sh - Rollback to previous version
 echo    claude-launch.bat          - Interactive launcher TUI
+echo.
 :: Only offer session pull if sessions haven't been pulled yet
 set "CLAUDE_DIR_NP=!CLAUDE_DIR!"
 if not defined CLAUDE_DIR_NP set "CLAUDE_DIR_NP=%USERPROFILE%\.claude"
