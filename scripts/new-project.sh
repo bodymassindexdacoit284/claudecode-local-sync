@@ -245,17 +245,28 @@ echo "    rollback.sh           - Rollback to previous version"
 echo "    claude-launch.bat     - Interactive launcher TUI"
 echo ""
 echo "  Global scripts (in CLAUDECODE/scripts/):"
-echo ""
-echo ""
-read -p "  Pull sessions for this project from another machine? (Y/N): " PULL_SESSIONS
-if [[ "$PULL_SESSIONS" =~ ^[Yy]$ ]]; then
+# Only offer session pull if sessions haven't been pulled yet
+CLAUDE_DIR_NP="${HOME}/.claude"
+if [ -f "$SCRIPT_DIR_SH/.claude-dir" ]; then
+    CLAUDE_DIR_NP="$(cat "$SCRIPT_DIR_SH/.claude-dir" | tr -d '\r\n')"
+fi
+
+if [ -d "$CLAUDE_DIR_NP/.git" ]; then
     echo ""
-    REMOTE_SLUG=$(echo "$REPO_URL" | sed 's|https://github.com/||' | tr '[:upper:]' '[:lower:]')
-    if [ -n "$PYTHON_CMD" ] && [ -f "$SCRIPT_DIR_SH/sync-sessions.py" ]; then
-        PARENT_DIR_SH="$(cd "$SCRIPT_DIR_SH/.." && pwd)"
-        "$PYTHON_CMD" "$SCRIPT_DIR_SH/sync-sessions.py" pull "$PARENT_DIR_SH" --project "$REMOTE_SLUG"
-    else
-        echo "  [SKIP] sync-sessions.py or Python not found."
+    echo -e "  ${GREEN}[OK]${NC} Sessions already synced (run pull-all-sessions to update)."
+else
+    echo ""
+    echo ""
+    read -p "  Pull sessions for this project from another machine? (Y/N): " PULL_SESSIONS
+    if [[ "$PULL_SESSIONS" =~ ^[Yy]$ ]]; then
+        echo ""
+        REMOTE_SLUG=$(echo "$REPO_URL" | sed 's|https://github.com/||' | tr '[:upper:]' '[:lower:]')
+        if [ -n "$PYTHON_CMD" ] && [ -f "$SCRIPT_DIR_SH/sync-sessions.py" ]; then
+            PARENT_DIR_SH="$(cd "$SCRIPT_DIR_SH/.." && pwd)"
+            "$PYTHON_CMD" "$SCRIPT_DIR_SH/sync-sessions.py" pull "$PARENT_DIR_SH" --project "$REMOTE_SLUG"
+        else
+            echo "  [SKIP] sync-sessions.py or Python not found."
+        fi
     fi
 fi
 
