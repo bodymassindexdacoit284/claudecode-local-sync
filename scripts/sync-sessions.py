@@ -2034,7 +2034,7 @@ def pull_project(claudecode_dir, project_remote):
     print("\n  Step 12: Import project settings...")
     import_project_settings(claude_dir, claudecode_dir)
 
-    print(f"\n  [OK] Session sync for {pf} complete.")
+    print(f"\n  [OK] Session sync for {project_folder} complete.")
     return True
 
 
