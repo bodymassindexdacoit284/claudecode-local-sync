@@ -157,7 +157,7 @@ def is_junction_or_symlink(path):
 
 
 def resolve_project_folder(claudecode_dir, project_remote):
-    """Given a git remote slug (e.g., 'your-org/n8n'), find the local folder name."""
+    """Given a git remote slug (e.g., 'pitir-tech/n8n'), find the local folder name."""
     if not os.path.isdir(claudecode_dir):
         return None
     target = project_remote.lower()
@@ -1152,7 +1152,7 @@ def _read_claude_json():
 def export_project_settings(claude_dir, claudecode_dir, project_filter=None):
     """Export project-level settings from .claude.json to a portable file.
 
-    Keyed by git remote (e.g., 'your-org/n8n') so the other machine
+    Keyed by git remote (e.g., 'pitir-tech/n8n') so the other machine
     can import them regardless of local path.
     """
     data, _ = _read_claude_json()
@@ -2005,35 +2005,34 @@ def pull_project(claudecode_dir, project_remote):
         print(" done.")
         print(f"  {C_GREEN}[OK] Pulled successfully.{C_RESET}")
 
-    # Scoped migration — only for this project
-    pf = project_folder
+    # Full migration — fix ALL projects (git pulled everything anyway)
 
-    print(f"\n  Step 4: Materialize symlinks for {pf}...")
-    materialize_symlinks(claude_dir, new_encoded, project_filter=pf)
+    print("\n  Step 4: Materialize symlinks...")
+    materialize_symlinks(claude_dir, new_encoded)
 
-    print(f"\n  Step 5: Merge sessions for {pf}...")
-    merge_sessions(claude_dir, new_encoded, root_folder, project_filter=pf)
+    print("\n  Step 5: Merge sessions from other PC(s)...")
+    merge_sessions(claude_dir, new_encoded, root_folder)
 
-    print(f"\n  Step 6: Detect renamed projects for {pf}...")
-    detect_renames(claudecode_dir, new_encoded, project_filter=pf)
+    print("\n  Step 6: Detect renamed projects...")
+    detect_renames(claudecode_dir, new_encoded)
 
-    print(f"\n  Step 7: Fix cwd paths for {pf}...")
-    fix_cwd_paths(claudecode_dir, new_encoded, project_filter=pf, changed_files=changed_files)
+    print("\n  Step 7: Fix cwd paths...")
+    fix_cwd_paths(claudecode_dir, new_encoded, changed_files=changed_files)
 
     print("\n  Step 8: Fix platform configs...")
     fix_platform_configs(claude_dir)
 
-    print(f"\n  Step 9: Restore large session history for {pf}...")
-    restore_large_originals(claude_dir, project_filter=pf)
+    print("\n  Step 9: Restore large session history...")
+    restore_large_originals(claude_dir)
 
-    print(f"\n  Step 10: Clean up other-PC dirs for {pf}...")
-    cleanup_old_dirs(claude_dir, new_encoded, root_folder, project_filter=pf)
+    print("\n  Step 10: Clean up other-PC dirs...")
+    cleanup_old_dirs(claude_dir, new_encoded, root_folder)
 
-    print(f"\n  Step 11: Fix timestamps for {pf}...")
-    fix_timestamps(claude_dir, project_filter=pf, changed_files=changed_files)
+    print("\n  Step 11: Fix timestamps...")
+    fix_timestamps(claude_dir, changed_files=changed_files)
 
-    print(f"\n  Step 12: Import project settings for {pf}...")
-    import_project_settings(claude_dir, claudecode_dir, project_filter=project_remote)
+    print("\n  Step 12: Import project settings...")
+    import_project_settings(claude_dir, claudecode_dir)
 
     print(f"\n  [OK] Session sync for {pf} complete.")
     return True
@@ -2047,7 +2046,7 @@ if __name__ == "__main__":
     parser.add_argument("mode", choices=["push", "pull"])
     parser.add_argument("claudecode_dir")
     parser.add_argument("--project", default=None,
-                        help="Git remote slug (e.g., your-org/n8n) for per-project sync")
+                        help="Git remote slug (e.g., pitir-tech/n8n) for per-project sync")
     args = parser.parse_args()
 
     claudecode_dir = os.path.normpath(args.claudecode_dir)

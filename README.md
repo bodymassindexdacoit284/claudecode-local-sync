@@ -68,10 +68,15 @@ Two types of data are synced:
 
 ### Per-Project Sync
 
-Each project's push/pull only syncs **that project's sessions** — identified by git remote, not path. This means:
-- Pushing one project only touches that project's sessions
-- Other projects' sessions are untouched
-- You can push/pull individual projects independently
+Projects are identified by **git remote**, not path. Push and pull behave differently:
+
+**Push** is scoped — only that project's sessions are committed and pushed. Other projects' sessions are untouched.
+
+**Pull** fetches everything (git can't pull selectively from a single repo), then runs the **full 12-step migration pipeline on ALL projects** — path fixing, timestamp correction, session merging, etc. This is necessary because pulling from a shared repo updates files across all projects, and they all need their paths and timestamps corrected for the current machine.
+
+**Conflict resolution** during per-project pull is scoped:
+- Files **inside** the pulled project's scope — you're asked whether to accept remote or keep local
+- Files **outside** the project's scope (other projects, settings) — local is kept automatically, no prompt
 
 ### What Syncs
 
@@ -332,6 +337,8 @@ The root scripts (`push-all-sessions`, `pull-all-sessions`, etc.) are standalone
 
 ## Pull Pipeline (12 Steps)
 
+Both `pull-all-sessions` and per-project `pull` run the same 12-step pipeline on **all** projects. The only difference is how conflicts are resolved (see "How Conflicts Are Resolved" below).
+
 When you pull, the engine automatically:
 
 ```
@@ -534,25 +541,32 @@ Interactive TUI launcher with:
 
 ## How Conflicts Are Resolved
 
-When you pull and both machines have modified the same file, git can't automatically merge them. The system handles this with a **simple, transparent approach**:
+When you pull and both machines have modified the same file, git can't automatically merge them. The system handles this differently depending on whether you're pulling all sessions or a single project.
 
-1. Shows you exactly which files conflict
-2. Shows timestamps — is your local data newer or older than remote?
-3. Asks you **once**: accept remote for all, or cancel?
+### Pull-All Sessions (root pull)
+
+Uses `git reset --hard` — no conflicts possible. Remote always wins entirely.
+
+### Per-Project Pull
+
+Uses `git pull --no-rebase` (merge) to preserve other projects' local state. When conflicts occur:
+
+**Out-of-scope files** (other projects, settings, plugins) are automatically resolved by **keeping local** — no prompt, no user action needed. This protects your other projects and machine-specific configs.
+
+**In-scope files** (the project you're pulling) are shown to you for a decision:
 
 ```
   [CONFLICTS DETECTED]
 
-  5 file(s) have conflicts between local and remote:
+  Keeping local for 3 file(s) outside my-app scope.
+
+  2 file(s) have conflicts:
 
     Local  (2026-03-26 20:15):
     Remote (2026-03-26 19:58):
 
-    - settings.json
-    - plugins/known_marketplaces.json
-    - projects/..../session.jsonl
-    - history.jsonl
-    - backups/.claude.json.backup.123456
+    - projects/..../session1.jsonl
+    - projects/..../session2.jsonl
 
   [WARNING] Your local data is NEWER than the remote.
   Accepting remote will replace these files with older versions.
@@ -561,12 +575,10 @@ When you pull and both machines have modified the same file, git can't automatic
   Accept remote? (Y/N):
 ```
 
-- **Y**: Remote wins entirely. All conflicting files replaced with the pushed version. Large local files are backed up to `session-originals/` first.
-- **N**: Local wins entirely. Nothing changes. You can resolve manually and push your version.
+- **Y**: Remote wins for in-scope files. Out-of-scope files stay local.
+- **N**: Nothing changes. You can resolve manually and push your version.
 
-**No partial merging.** No per-file questions. One decision, applied to everything. This is intentional — partial merges of JSON config files can break things (a setting that was intentionally removed on one machine gets re-added by the other).
-
-**The principle:** Push means "remote should match my machine." Pull means "my machine should match the remote." If there's a mismatch, you decide which side wins.
+**The principle:** Per-project pull only asks you about your project. Everything else stays untouched. After conflicts are resolved, the full 12-step migration pipeline runs on ALL projects to fix paths, timestamps, and configs across the board.
 
 ---
 
@@ -626,7 +638,7 @@ Each machine's `.gitignore` is independent. Changes you make to `.gitignore` on 
 - **Credentials excluded**: `.credentials.json` never leaves your machine.
 - **Large file backup**: Files >90MB are appended to a growing backup in `session-originals/` before being replaced. The backup accumulates complete session history across all pulls — no duplicates.
 - **Force push confirmation**: Root push asks "Overwrite remote?" when remote has newer data.
-- **Per-project isolation**: Each project's push/pull only touches that project's sessions. Settings, plugins, and other projects' data are never modified — conflicts outside the project scope are auto-resolved by keeping your local version.
+- **Per-project isolation**: Push only commits that project's sessions. Pull fetches everything but auto-resolves conflicts outside the project scope by keeping local — other projects, settings, and plugins are never overwritten. The full migration pipeline still runs on all projects to fix paths and timestamps.
 - **Claude directory detection**: Auto-finds `~/.claude/`, prompts if not found, lets you enter a custom path.
 - **Project directory validation**: Every operation checks folders exist. Clear errors with fix instructions.
 - **Workspace structure check**: Warns if project isn't inside the workspace.
