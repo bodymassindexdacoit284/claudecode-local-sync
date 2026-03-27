@@ -91,6 +91,9 @@ Everything by default. The only exclusions are machine-local ephemeral files:
 | `cache/`, `debug/`, `telemetry/` | Temp data, regenerated |
 | `sessions/` | IDE process state, not session history |
 | `stats-cache.json`, `*.untrimmed` | Ephemeral |
+| `*.jsonl.backup-*`, `*.jsonl.pre-*`, etc. | Session repair artifacts |
+| `projects/*/tool-results/` | Machine-local tool output blobs |
+| `projects/*/*.meta.json` | Subagent metadata |
 
 Everything else syncs automatically — plugins you install, agents you create, skills, rules, hooks, MCP servers, observer sessions, tool-results, subagent sessions, memory files. No config changes needed. Any new plugin or tool you install on one machine is available on all machines after the next sync.
 
@@ -365,7 +368,9 @@ When you pull, the engine automatically:
  2. Export project settings   Save MCP/tools keyed by git remote
  3. Trim oversized files      Sessions >90MB trimmed to last 90MB
  4. Stage + commit            Per-project: incremental. Root: soft-reset + force push
+                              Repair artifacts (*.jsonl.backup-*, tool-results/) auto-excluded
  5. Push                      Per-project: regular push. Root: force push with tag
+                              On failure: auto-rollback commit + delete tag (prevents orphaned tags)
  6. Restore originals         Put untrimmed files back on disk
 ```
 
@@ -640,6 +645,8 @@ Each machine's `.gitignore` is independent. Changes you make to `.gitignore` on 
 - **Stash protection**: Auto-stashes local changes during pull, restores them after.
 - **Credentials excluded**: `.credentials.json` never leaves your machine.
 - **Large file backup**: Files >90MB are appended to a growing backup in `session-originals/` before being replaced. The backup accumulates complete session history across all pulls — no duplicates.
+- **Push failure rollback**: If a push fails (e.g., GitHub rejects a large file), the commit and tag are automatically rolled back so they don't block future pushes. Previously, orphaned tags pointing to bad commits would cause every subsequent push to fail.
+- **Repair artifact exclusion**: Session repair files (`*.jsonl.backup-*`, `*.jsonl.pre-*`, `*.jsonl.minimal`, `*.jsonl.repaired*`, `*.jsonl.branch-repair`) and machine-local blobs (`tool-results/`, `*.meta.json`) are never staged or pushed, even if they exist on disk.
 - **Force push confirmation**: Root push asks "Overwrite remote?" when remote has newer data.
 - **Per-project isolation**: Push only commits that project's sessions. Pull fetches everything but auto-resolves conflicts outside the project scope by keeping local — other projects, settings, and plugins are never overwritten. The full migration pipeline still runs on all projects to fix paths and timestamps.
 - **Claude directory detection**: Auto-finds `~/.claude/`, prompts if not found, lets you enter a custom path.

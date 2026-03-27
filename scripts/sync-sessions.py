@@ -1056,6 +1056,19 @@ REQUIRED_GITIGNORE = {
         "metrics/",
         "*.untrimmed",
     ],
+    "# Session repair/backup artifacts — never push": [
+        "*.jsonl.backup-*",
+        "*.jsonl.pre-*",
+        "*.jsonl.minimal",
+        "*.jsonl.repaired*",
+        "*.jsonl.branch-repair",
+    ],
+    "# Tool result blobs and subagent metadata — machine-local": [
+        "projects/*/tool-results/",
+        "projects/*/*/tool-results/",
+        "projects/*/*.meta.json",
+        "projects/*/*/*.meta.json",
+    ],
 }
 
 
@@ -1544,9 +1557,16 @@ def _show_session_status(claude_dir, mode, project_folder=None):
                 print(f"  {C_BOLD}No changes for this project in {latest_tag}.{C_RESET}")
                 print()
         if dirty_files:
-            print(f"  {C_YELLOW}[WARNING] Your {len(dirty_files)} uncommitted local change(s) will be replaced by the remote version.{C_RESET}")
-            print(f"  {C_DIM}If you have unsaved work, cancel and push first.{C_RESET}")
-            print(f"  {C_DIM}Large files (>90MB) are backed up in Step 2.{C_RESET}")
+            if project_folder:
+                # Per-project pull: commits all local changes, merges remote.
+                # On conflict: remote wins for THIS project, local wins for everything else.
+                print(f"  {C_DIM}[INFO] {len(dirty_files)} uncommitted local change(s) will be committed before merge.{C_RESET}")
+                print(f"  {C_DIM}On conflict: remote wins for {project_folder}, local wins for all other projects.{C_RESET}")
+            else:
+                # All-project pull: reset --hard replaces everything
+                print(f"  {C_YELLOW}[WARNING] Your {len(dirty_files)} uncommitted local change(s) will be replaced by the remote version.{C_RESET}")
+                print(f"  {C_DIM}If you have unsaved work, cancel and push first.{C_RESET}")
+                print(f"  {C_DIM}Large files (>90MB) are backed up in Step 2.{C_RESET}")
             print()
 
     return ahead, behind, bool(dirty_files)
@@ -1748,9 +1768,14 @@ def push_sessions(claudecode_dir):
     # Fetch and soft-reset to avoid large files in history
     git_run(claude_dir, "fetch", "origin", "main", "--tags")
     git_run(claude_dir, "reset", "--soft", "origin/main")
-    # Stage everything except .untrimmed
+    # Stage everything except backup/repair artifacts
     git_run(claude_dir, "add", "-A")
     git_run(claude_dir, "reset", "--", "**/*.untrimmed")
+    git_run(claude_dir, "reset", "--", "**/*.jsonl.backup-*")
+    git_run(claude_dir, "reset", "--", "**/*.jsonl.pre-*")
+    git_run(claude_dir, "reset", "--", "**/*.jsonl.minimal")
+    git_run(claude_dir, "reset", "--", "**/*.jsonl.repaired*")
+    git_run(claude_dir, "reset", "--", "**/*.jsonl.branch-repair")
 
     # Check if anything to push
     r = git_run(claude_dir, "diff", "--cached", "--quiet")
@@ -1781,6 +1806,10 @@ def push_sessions(claudecode_dir):
     r = git_run(claude_dir, "push", "origin", "main", "--tags", "--force")
     if r.returncode != 0:
         print(f"  [ERROR] Push failed:\n{r.stderr[-500:]}")
+        # Clean up the local tag so it doesn't block future pushes
+        git_run(claude_dir, "tag", "-d", next_tag)
+        git_run(claude_dir, "reset", "--soft", "HEAD~1")
+        print(f"  [OK] Rolled back commit and deleted tag {next_tag}.")
         restore_untrimmed(claude_dir)
         return False
 
@@ -1907,8 +1936,13 @@ def push_project(claudecode_dir, project_remote):
     git_run(claude_dir, "add", "project-settings.json")
     git_run(claude_dir, "add", ".gitignore")
     git_run(claude_dir, "add", "history.jsonl")
-    # Don't stage .untrimmed files
+    # Don't stage backup/repair artifacts
     git_run(claude_dir, "reset", "--", "**/*.untrimmed")
+    git_run(claude_dir, "reset", "--", "**/*.jsonl.backup-*")
+    git_run(claude_dir, "reset", "--", "**/*.jsonl.pre-*")
+    git_run(claude_dir, "reset", "--", "**/*.jsonl.minimal")
+    git_run(claude_dir, "reset", "--", "**/*.jsonl.repaired*")
+    git_run(claude_dir, "reset", "--", "**/*.jsonl.branch-repair")
 
     # Check if anything to push
     r = git_run(claude_dir, "diff", "--cached", "--quiet")
