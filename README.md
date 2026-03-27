@@ -152,14 +152,7 @@ The setup wizard:
 
 This updates all scripts with your configuration. **You only run this once** — the settings travel with your project code (see "Setting Up a Second PC" below).
 
-### Step 4: Pull Sessions (if you have them from another machine)
-
-```bash
-./scripts/pull-all-sessions.sh   # Mac
-scripts\pull-all-sessions.bat    # Windows
-```
-
-### Step 5: Add Your Projects
+### Step 4: Add Your Projects
 
 For each project, create a GitHub repo first, then:
 
@@ -169,6 +162,15 @@ scripts\new-project.bat          # Windows
 ```
 
 Enter the repo URL (e.g., `https://github.com/your-name/my-app`). The script clones the code and generates push/pull/rollback scripts with that project's remote baked in.
+
+### Step 5: Pull Sessions (if you have them from another machine)
+
+Run `pull.sh` from each project to pull that project's sessions:
+
+```bash
+cd my-app && ./scripts/pull.sh        # Mac
+cd my-app && scripts\pull.bat          # Windows
+```
 
 ### Step 6: Authenticate
 
@@ -481,14 +483,13 @@ workspace/                                <- your root (anywhere, any name)
 1. Install git, Python, Node.js, Claude Code
 2. Create a workspace folder, copy scripts/ into it
 3. Run setup-owner.sh (first time only)
-4. Run pull-all-sessions.sh — pulls + migrates everything
-5. Run new-project.sh for each project — clones code + generates scripts
+4. Run new-project.sh for each project — clones code + generates scripts
+5. Run pull.sh from each project — pulls that project's sessions from remote
 ```
 
 ### Existing PC (returning from another machine)
 ```
 1. Run pull.sh from each project you'll work on
-   — OR run pull-all-sessions.sh for everything at once
 ```
 
 ### End of Workday
@@ -496,7 +497,7 @@ workspace/                                <- your root (anywhere, any name)
 1. Run push.sh from each project you worked on
 ```
 
-**Use per-project push/pull for daily work.** Each project's push only touches that project's sessions — safe even when working on different projects across multiple machines simultaneously. `push-all-sessions` / `pull-all-sessions` are power tools for initial setup and full syncs — they replace the entire remote state, which can overwrite another machine's newer sessions if you haven't pulled first.
+**Always use per-project push/pull.** Each project's push only touches that project's sessions — it's incremental (no force push), safe even when working on different projects across multiple machines simultaneously, and safe even if you forget to pull first. `push-all-sessions` / `pull-all-sessions` are power tools for initial setup only — they force-push the entire remote state, which can overwrite another machine's newer sessions.
 
 ### Starting Over
 ```
